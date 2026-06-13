@@ -20,13 +20,21 @@ def compute_composite_macro_factor(macro_df, target_returns=None):
     If target_returns is provided, weights are estimated via ridge regression.
     Otherwise, equal weights.
     """
-    if target_returns is not None and len(target_returns) == len(macro_df):
+    # Remove NaN rows
+    if target_returns is not None:
+        mask = ~(np.isnan(target_returns) | np.isnan(macro_df).any(axis=1))
+        macro_clean = macro_df[mask]
+        target_clean = target_returns[mask]
+    else:
+        macro_clean = macro_df
+        target_clean = None
+    if target_clean is not None and len(target_clean) > 5:
         # Standardise macro
         scaler = StandardScaler()
-        macro_scaled = scaler.fit_transform(macro_df)
+        macro_scaled = scaler.fit_transform(macro_clean)
         # Ridge regression to estimate importance
         ridge = Ridge(alpha=1.0)
-        ridge.fit(macro_scaled, target_returns)
+        ridge.fit(macro_scaled, target_clean)
         weights = np.abs(ridge.coef_)
         weights = weights / (weights.sum() + 1e-8)
     else:
