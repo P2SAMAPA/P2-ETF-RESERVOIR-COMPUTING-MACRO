@@ -29,16 +29,11 @@ def run_for_window(returns, macro_df, window_days):
     macro_window = macro_df.loc[ret_window.index]
     if len(macro_window) < len(ret_window):
         return None
-    # Get the primary macro value (last in the window)
-    if config.PRIMARY_MACRO not in macro_window.columns:
-        macro_value = 10.0
-    else:
-        macro_value = macro_window[config.PRIMARY_MACRO].iloc[-1]
     raw_scores = {}
     for ticker in ret_window.columns:
         s = reservoir_computing_score(
             ret_window[ticker].values,
-            macro_value,
+            macro_window,
             reservoir_size=config.RESERVOIR_SIZE,
             base_radius=config.SPECTRAL_RADIUS_BASE,
             radius_range=config.SPECTRAL_RADIUS_RANGE,
